@@ -175,7 +175,7 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('resvg_ffi'),
+          title: const Text('re_svg'),
         ),
         body: SingleChildScrollView(
           child: Container(
