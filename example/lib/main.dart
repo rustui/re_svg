@@ -159,16 +159,6 @@ class _MyAppState extends State<MyApp> {
     </g>
 </svg>
 """;
-  @override
-  void initState() {
-    super.initState();
-
-    // renderSvg(data, (result) {
-    //   setState(() {
-    //     image = result;
-    //   });
-    // });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -185,9 +175,6 @@ class _MyAppState extends State<MyApp> {
                 data: data,
                 intrinsic: true,
               ),
-              // child: RawImage(
-              //   image: image,
-              // ),
             ),
           ),
         ),

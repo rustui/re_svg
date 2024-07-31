@@ -1,11 +1,11 @@
 name: re_svg
-description: "An SVG rendering library."
-version: 0.0.1
+description: "A tiny and super-fast SVG rendering library for Flutter, with CSS support."
+version: 0.0.2
 homepage: https://github.com/rustui/re_svg
 repository: https://github.com/rustui/re_svg
 
 environment:
-  sdk: '>=3.4.4 <4.0.0'
+  sdk: '>=3.4.3 <4.0.0'
   flutter: '>=3.3.0'
 
 dependencies:
@@ -15,10 +15,10 @@ dependencies:
   plugin_platform_interface: ^2.0.2
 
 dev_dependencies:
-  ffigen: ^11.0.0
+  ffigen: ^13.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^4.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

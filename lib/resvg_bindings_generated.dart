@@ -320,18 +320,18 @@ class ReSvgBindings {
   /// Default: `RESVG_SHAPE_RENDERING_GEOMETRIC_PRECISION`
   void resvg_options_set_shape_rendering_mode(
     ffi.Pointer<resvg_options> opt,
-    int mode,
+    resvg_shape_rendering mode,
   ) {
     return _resvg_options_set_shape_rendering_mode(
       opt,
-      mode,
+      mode.value,
     );
   }
 
   late final _resvg_options_set_shape_rendering_modePtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<resvg_options>,
-              ffi.Int32)>>('resvg_options_set_shape_rendering_mode');
+              ffi.UnsignedInt)>>('resvg_options_set_shape_rendering_mode');
   late final _resvg_options_set_shape_rendering_mode =
       _resvg_options_set_shape_rendering_modePtr
           .asFunction<void Function(ffi.Pointer<resvg_options>, int)>();
@@ -343,18 +343,18 @@ class ReSvgBindings {
   /// Default: `RESVG_TEXT_RENDERING_OPTIMIZE_LEGIBILITY`
   void resvg_options_set_text_rendering_mode(
     ffi.Pointer<resvg_options> opt,
-    int mode,
+    resvg_text_rendering mode,
   ) {
     return _resvg_options_set_text_rendering_mode(
       opt,
-      mode,
+      mode.value,
     );
   }
 
   late final _resvg_options_set_text_rendering_modePtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<resvg_options>,
-              ffi.Int32)>>('resvg_options_set_text_rendering_mode');
+              ffi.UnsignedInt)>>('resvg_options_set_text_rendering_mode');
   late final _resvg_options_set_text_rendering_mode =
       _resvg_options_set_text_rendering_modePtr
           .asFunction<void Function(ffi.Pointer<resvg_options>, int)>();
@@ -366,18 +366,18 @@ class ReSvgBindings {
   /// Default: `RESVG_IMAGE_RENDERING_OPTIMIZE_QUALITY`
   void resvg_options_set_image_rendering_mode(
     ffi.Pointer<resvg_options> opt,
-    int mode,
+    resvg_image_rendering mode,
   ) {
     return _resvg_options_set_image_rendering_mode(
       opt,
-      mode,
+      mode.value,
     );
   }
 
   late final _resvg_options_set_image_rendering_modePtr = _lookup<
       ffi.NativeFunction<
           ffi.Void Function(ffi.Pointer<resvg_options>,
-              ffi.Int32)>>('resvg_options_set_image_rendering_mode');
+              ffi.UnsignedInt)>>('resvg_options_set_image_rendering_mode');
   late final _resvg_options_set_image_rendering_mode =
       _resvg_options_set_image_rendering_modePtr
           .asFunction<void Function(ffi.Pointer<resvg_options>, int)>();
@@ -820,51 +820,97 @@ class ReSvgBindings {
 }
 
 /// @brief List of possible errors.
-abstract class resvg_error {
+enum resvg_error {
   /// Everything is ok.
-  static const int RESVG_OK = 0;
+  RESVG_OK(0),
 
   /// Only UTF-8 content are supported.
-  static const int RESVG_ERROR_NOT_AN_UTF8_STR = 1;
+  RESVG_ERROR_NOT_AN_UTF8_STR(1),
 
   /// Failed to open the provided file.
-  static const int RESVG_ERROR_FILE_OPEN_FAILED = 2;
+  RESVG_ERROR_FILE_OPEN_FAILED(2),
 
   /// Compressed SVG must use the GZip algorithm.
-  static const int RESVG_ERROR_MALFORMED_GZIP = 3;
+  RESVG_ERROR_MALFORMED_GZIP(3),
 
   /// We do not allow SVG with more than 1_000_000 elements for security reasons.
-  static const int RESVG_ERROR_ELEMENTS_LIMIT_REACHED = 4;
+  RESVG_ERROR_ELEMENTS_LIMIT_REACHED(4),
 
   /// SVG doesn't have a valid size.
   ///
   /// Occurs when width and/or height are <= 0.
   ///
   /// Also occurs if width, height and viewBox are not set.
-  static const int RESVG_ERROR_INVALID_SIZE = 5;
+  RESVG_ERROR_INVALID_SIZE(5),
 
   /// Failed to parse an SVG data.
-  static const int RESVG_ERROR_PARSING_FAILED = 6;
+  RESVG_ERROR_PARSING_FAILED(6);
+
+  final int value;
+  const resvg_error(this.value);
+
+  static resvg_error fromValue(int value) => switch (value) {
+        0 => RESVG_OK,
+        1 => RESVG_ERROR_NOT_AN_UTF8_STR,
+        2 => RESVG_ERROR_FILE_OPEN_FAILED,
+        3 => RESVG_ERROR_MALFORMED_GZIP,
+        4 => RESVG_ERROR_ELEMENTS_LIMIT_REACHED,
+        5 => RESVG_ERROR_INVALID_SIZE,
+        6 => RESVG_ERROR_PARSING_FAILED,
+        _ => throw ArgumentError("Unknown value for resvg_error: $value"),
+      };
 }
 
 /// @brief A image rendering method.
-abstract class resvg_image_rendering {
-  static const int RESVG_IMAGE_RENDERING_OPTIMIZE_QUALITY = 0;
-  static const int RESVG_IMAGE_RENDERING_OPTIMIZE_SPEED = 1;
+enum resvg_image_rendering {
+  RESVG_IMAGE_RENDERING_OPTIMIZE_QUALITY(0),
+  RESVG_IMAGE_RENDERING_OPTIMIZE_SPEED(1);
+
+  final int value;
+  const resvg_image_rendering(this.value);
+
+  static resvg_image_rendering fromValue(int value) => switch (value) {
+        0 => RESVG_IMAGE_RENDERING_OPTIMIZE_QUALITY,
+        1 => RESVG_IMAGE_RENDERING_OPTIMIZE_SPEED,
+        _ => throw ArgumentError(
+            "Unknown value for resvg_image_rendering: $value"),
+      };
 }
 
 /// @brief A shape rendering method.
-abstract class resvg_shape_rendering {
-  static const int RESVG_SHAPE_RENDERING_OPTIMIZE_SPEED = 0;
-  static const int RESVG_SHAPE_RENDERING_CRISP_EDGES = 1;
-  static const int RESVG_SHAPE_RENDERING_GEOMETRIC_PRECISION = 2;
+enum resvg_shape_rendering {
+  RESVG_SHAPE_RENDERING_OPTIMIZE_SPEED(0),
+  RESVG_SHAPE_RENDERING_CRISP_EDGES(1),
+  RESVG_SHAPE_RENDERING_GEOMETRIC_PRECISION(2);
+
+  final int value;
+  const resvg_shape_rendering(this.value);
+
+  static resvg_shape_rendering fromValue(int value) => switch (value) {
+        0 => RESVG_SHAPE_RENDERING_OPTIMIZE_SPEED,
+        1 => RESVG_SHAPE_RENDERING_CRISP_EDGES,
+        2 => RESVG_SHAPE_RENDERING_GEOMETRIC_PRECISION,
+        _ => throw ArgumentError(
+            "Unknown value for resvg_shape_rendering: $value"),
+      };
 }
 
 /// @brief A text rendering method.
-abstract class resvg_text_rendering {
-  static const int RESVG_TEXT_RENDERING_OPTIMIZE_SPEED = 0;
-  static const int RESVG_TEXT_RENDERING_OPTIMIZE_LEGIBILITY = 1;
-  static const int RESVG_TEXT_RENDERING_GEOMETRIC_PRECISION = 2;
+enum resvg_text_rendering {
+  RESVG_TEXT_RENDERING_OPTIMIZE_SPEED(0),
+  RESVG_TEXT_RENDERING_OPTIMIZE_LEGIBILITY(1),
+  RESVG_TEXT_RENDERING_GEOMETRIC_PRECISION(2);
+
+  final int value;
+  const resvg_text_rendering(this.value);
+
+  static resvg_text_rendering fromValue(int value) => switch (value) {
+        0 => RESVG_TEXT_RENDERING_OPTIMIZE_SPEED,
+        1 => RESVG_TEXT_RENDERING_OPTIMIZE_LEGIBILITY,
+        2 => RESVG_TEXT_RENDERING_GEOMETRIC_PRECISION,
+        _ =>
+          throw ArgumentError("Unknown value for resvg_text_rendering: $value"),
+      };
 }
 
 final class resvg_options extends ffi.Opaque {}

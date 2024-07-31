@@ -1,54 +1,62 @@
-import 'dart:ffi';
+import 'dart:async';
+import 'dart:ffi' hide Size;
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:ffi/ffi.dart';
 
 import 'resvg_bindings_generated.dart';
 
-void renderSvg(String data, ImageDecoderCallback callback,
-    {int? width, int? height, double dpr = 1}) {
-  final str = data.toNativeUtf8();
-  final options = _bindings.resvg_options_create();
-  final tree = malloc<Pointer<resvg_render_tree>>();
-  _bindings.resvg_parse_tree_from_data(str.cast(), str.length, options, tree);
-  _bindings.resvg_options_destroy(options);
+class ReSvg {
+  final Pointer<Pointer<resvg_render_tree>> _tree;
+  late final Size size;
 
-  final size = _bindings.resvg_get_image_size(tree.value);
-  final transform = _bindings.resvg_transform_identity();
+  ReSvg._(this._tree, this.size);
 
-  double sx;
-  double sy;
-  if (width == null) {
-    if (height == null) {
-      sx = dpr;
-      sy = dpr;
-    } else {
-      sy = height / size.height;
-      sx = sy;
-    }
-  } else {
-    sx = width / size.width;
-    if (height == null) {
-      sy = sx;
-    } else {
-      sy = height / size.height;
-    }
+  static Future<ReSvg> from(String data) async =>
+      await Isolate.run(() => _from(data));
+
+  Future<Image> render(int width, int height) async {
+    final (pixmap, pixels) = await Isolate.run(() => _render(width, height));
+    final completer = Completer<Image>();
+    decodeImageFromPixels(pixels, width, height, PixelFormat.rgba8888, (image) {
+      malloc.free(pixmap);
+      completer.complete(image);
+    });
+    return completer.future;
   }
 
-  transform.a = sx;
-  transform.d = sy;
-  final pixmapWidth = (size.width * sx).round();
-  final pixmapHeight = (size.height * sy).round();
-  final length = pixmapWidth * pixmapHeight * 4;
-  final pixmap = malloc<Uint8>(length);
-  _bindings.resvg_render(
-      tree.value, transform, pixmapWidth, pixmapHeight, pixmap.cast());
-  _bindings.resvg_tree_destroy(tree.value);
+  static ReSvg _from(String data) {
+    final str = data.toNativeUtf8();
+    final options = _bindings.resvg_options_create();
+    final tree = malloc<Pointer<resvg_render_tree>>();
+    _bindings.resvg_parse_tree_from_data(str.cast(), str.length, options, tree);
+    _bindings.resvg_options_destroy(options);
 
-  final pixels = pixmap.asTypedList(length);
-  decodeImageFromPixels(
-      pixels, pixmapWidth, pixmapHeight, PixelFormat.rgba8888, callback);
+    final rawSize = _bindings.resvg_get_image_size(tree.value);
+    final size = Size(rawSize.width, rawSize.height);
+    return ReSvg._(tree, size);
+  }
+
+  (Pointer<Uint8>, Uint8List) _render(int width, int height) {
+    final transform = _bindings.resvg_transform_identity();
+
+    transform.a = width / size.width;
+    transform.d = height / size.height;
+    final length = width * height * 4;
+    final pixmap = malloc<Uint8>(length);
+    _bindings.resvg_render(
+        _tree.value, transform, width, height, pixmap.cast());
+
+    return (pixmap, pixmap.asTypedList(length));
+  }
+
+  void dispose() {
+    _bindings.resvg_tree_destroy(_tree.value);
+    malloc.free(_tree);
+  }
 }
 
 const String _libName = 'resvg_ffi';

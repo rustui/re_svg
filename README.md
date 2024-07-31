@@ -4,6 +4,8 @@
 
 A tiny and super-fast SVG rendering library for Flutter.
 
+Underneath, the parsing and rendering of SVG run in isolates to prevent any potential frame drops.
+
 ## Getting Started
 re_svg is designed for ease of use. By simply introducing the SvgView widget, SVGs can be rendered correctly.
 ```dart
@@ -11,10 +13,16 @@ import 'package:re_svg/re_svg.dart';
 
 // ...
 
+final data = """
+<svg height="100" width="100">
+  <circle r="45" cx="50" cy="50" fill="blue" />
+</svg> 
+""";
+
 SvgView(
-  data: data, // string
+  data: data,
   intrinsic: true,
-)
+);
 ```
 
 ## Screenshot
