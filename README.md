@@ -2,7 +2,7 @@
 
 [![Pub](https://img.shields.io/pub/v/re_svg.svg)](https://pub.dev/packages/re_svg)
 
-A tiny and super-fast SVG rendering library for Flutter.
+A tiny and super-fast SVG rendering library for Flutter, with CSS support.
 
 Underneath, the parsing and rendering of SVG run in isolates to prevent any potential frame drops.
 
