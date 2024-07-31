@@ -1,0 +1,29 @@
+PODS:
+  - Flutter (1.0.0)
+  - re_svg (0.0.1):
+    - Flutter
+    - resvg
+  - resvg (0.1.0)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - re_svg (from `.symlinks/plugins/re_svg/ios`)
+
+SPEC REPOS:
+  trunk:
+    - resvg
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  re_svg:
+    :path: ".symlinks/plugins/re_svg/ios"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  re_svg: 8bb4c4ba175254744ac590bc19169c15ce626c7a
+  resvg: f09a381a5c113658cc1cada285effb195b09e9d3
+
+PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
+
+COCOAPODS: 1.15.2
