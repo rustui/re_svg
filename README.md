@@ -31,7 +31,7 @@ SvgView(
 
 ## Supported Platforms
 - [x] iOS
-- [ ] Android
+- [x] Android
 - [ ] macOS
 - [ ] Windows
 - [ ] Linux
@@ -40,6 +40,7 @@ SvgView(
 ## Related Projects
 - [resvg_action](https://github.com/rustui/resvg_action) - Use GitHub Actions to compile the Rust library resvg for different platforms.
 - [resvg_pod](https://github.com/rustui/resvg_pod) - For the iOS platform, Flutter’s local pod cannot directly download the online static library. Therefore, a new pod is created to download the resvg static library.
+- [resvg_module](https://github.com/rustui/resvg_module) - An Android library for dynamically linking the Rust library resvg.
 
 ## For Rustaceans
 This project demonstrates how to integrate Flutter with Rust libraries.

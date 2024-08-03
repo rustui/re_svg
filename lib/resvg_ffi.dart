@@ -59,7 +59,7 @@ class ReSvg {
   }
 }
 
-const String _libName = 'resvg_ffi';
+const String _libName = 'resvg';
 
 /// The dynamic library in which the symbols for [ResvgFfiBindings] can be found.
 final DynamicLibrary _dylib = () {
