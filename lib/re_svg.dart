@@ -18,11 +18,12 @@ class _SvgViewState extends State<SvgView> {
   int? _lastWidth;
   int? _lastHeight;
 
+  bool _hasRendered = false;
+
   @override
   void dispose() {
-    final reSvg = _reSvg;
-    if (reSvg != null) {
-      reSvg.dispose();
+    if (_hasRendered) {
+      _clean();
     }
 
     super.dispose();
@@ -40,6 +41,7 @@ class _SvgViewState extends State<SvgView> {
               _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
           _lastWidth = width;
           _lastHeight = height;
+          _hasRendered = false;
           return reSvg.render(width, height);
         }).then(_imageCallback);
       } else {
@@ -48,6 +50,7 @@ class _SvgViewState extends State<SvgView> {
         if (width != _lastWidth || height != _lastHeight) {
           _lastWidth = width;
           _lastHeight = height;
+          _hasRendered = false;
           reSvg.render(width, height).then(_imageCallback);
         }
       }
@@ -59,10 +62,22 @@ class _SvgViewState extends State<SvgView> {
     });
   }
 
+  void _clean() {
+    final reSvg = _reSvg;
+    if (reSvg != null) {
+      reSvg.dispose();
+    }
+  }
+
   void _imageCallback(ui.Image result) {
-    setState(() {
-      _image = result;
-    });
+    if (mounted) {
+      _hasRendered = true;
+      setState(() {
+        _image = result;
+      });
+    } else {
+      _clean();
+    }
   }
 
   (int, int) _getPhysicalSize(
