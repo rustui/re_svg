@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
@@ -13,18 +15,27 @@ class SvgView extends StatefulWidget {
 }
 
 class _SvgViewState extends State<SvgView> {
-  ui.Image? _image;
-  ReSvg? _reSvg;
-  int? _lastWidth;
-  int? _lastHeight;
+  late Future<ReSvg> _reSvg;
 
-  bool _hasRendered = false;
+  @override
+  void initState() {
+    super.initState();
+    _reSvg = ReSvg.from(widget.data);
+  }
+
+  @override
+  void didUpdateWidget(oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    if (widget.data != oldWidget.data) {
+      _clean();
+      _reSvg = ReSvg.from(widget.data);
+    }
+  }
 
   @override
   void dispose() {
-    if (_hasRendered) {
-      _clean();
-    }
+    _clean();
 
     super.dispose();
   }
@@ -33,52 +44,76 @@ class _SvgViewState extends State<SvgView> {
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, BoxConstraints constraints) {
       final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-      final reSvg = _reSvg;
-      if (reSvg == null) {
-        ReSvg.from(widget.data).then((reSvg) {
-          _reSvg = reSvg;
-          final (width, height) =
-              _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
-          _lastWidth = width;
-          _lastHeight = height;
-          _hasRendered = false;
-          return reSvg.render(width, height);
-        }).then(_imageCallback);
-      } else {
-        final (width, height) =
-            _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
-        if (width != _lastWidth || height != _lastHeight) {
-          _lastWidth = width;
-          _lastHeight = height;
-          _hasRendered = false;
-          reSvg.render(width, height).then(_imageCallback);
-        }
-      }
-
-      return RawImage(
-        image: _image,
-        scale: devicePixelRatio,
-      );
+      return FutureBuilder(
+          future: _getImage(constraints, devicePixelRatio),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return RawImage(
+                image: snapshot.data,
+                scale: devicePixelRatio,
+              );
+            } else {
+              return const CircularProgressIndicator();
+            }
+          });
     });
   }
 
-  void _clean() {
-    final reSvg = _reSvg;
-    if (reSvg != null) {
-      reSvg.dispose();
-    }
+  // Widget build2(BuildContext context) {
+  //   return LayoutBuilder(builder: (context, BoxConstraints constraints) {
+  //     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+  //     final reSvg = _reSvg;
+  //     if (reSvg == null) {
+  //       ReSvg.from(widget.data).then((reSvg) {
+  //         _reSvg = reSvg;
+  //         final (width, height) =
+  //             _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
+  //         _lastWidth = width;
+  //         _lastHeight = height;
+  //         _hasRendered = false;
+  //         return reSvg.render(width, height);
+  //       }).then(_imageCallback);
+  //     } else {
+  //       final (width, height) =
+  //           _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
+  //       if (width != _lastWidth || height != _lastHeight) {
+  //         _lastWidth = width;
+  //         _lastHeight = height;
+  //         _hasRendered = false;
+  //         reSvg.render(width, height).then(_imageCallback);
+  //       }
+  //     }
+
+  //     return RawImage(
+  //       image: _image,
+  //       scale: devicePixelRatio,
+  //     );
+  //   });
+  // }
+
+  Future<ui.Image?> _getImage(
+      BoxConstraints constraints, double devicePixelRatio) async {
+    final reSvg = await _reSvg;
+    final (width, height) =
+        _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
+    final image = await reSvg.render(width, height);
+    return image;
   }
 
-  void _imageCallback(ui.Image result) {
-    if (mounted) {
-      _hasRendered = true;
-      setState(() {
-        _image = result;
-      });
-    } else {
-      _clean();
-    }
+  void _clean() {
+    _reSvg.then((reSvg) => reSvg.shouldClean = true);
   }
+
+  // void _imageCallback(ui.Image result) {
+  //   if (mounted) {
+  //     _hasRendered = true;
+  //     setState(() {
+  //       _image = result;
+  //     });
+  //   } else {
+  //     _clean();
+  //   }
+  // }
 
   (int, int) _getPhysicalSize(
       Size size, BoxConstraints constraints, double devicePixelRatio) {

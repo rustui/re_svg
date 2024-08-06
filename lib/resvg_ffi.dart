@@ -12,17 +12,26 @@ import 'resvg_bindings_generated.dart';
 class ReSvg {
   final Pointer<Pointer<resvg_render_tree>> _tree;
   late final Size size;
+  var shouldClean = false;
+  var _hasCleaned = false;
 
   ReSvg._(this._tree, this.size);
 
   static Future<ReSvg> from(String data) async =>
       await Isolate.run(() => _from(data));
 
-  Future<Image> render(int width, int height) async {
+  Future<Image?> render(int width, int height) async {
+    if (_hasCleaned) {
+      return null;
+    }
     final (pixmap, pixels) = await Isolate.run(() => _render(width, height));
     final completer = Completer<Image>();
     decodeImageFromPixels(pixels, width, height, PixelFormat.rgba8888, (image) {
       malloc.free(pixmap);
+      if (shouldClean && !_hasCleaned) {
+        _hasCleaned = true;
+        _dispose();
+      }
       completer.complete(image);
     });
     return completer.future;
@@ -53,7 +62,7 @@ class ReSvg {
     return (pixmap, pixmap.asTypedList(length));
   }
 
-  void dispose() {
+  void _dispose() {
     _bindings.resvg_tree_destroy(_tree.value);
     malloc.free(_tree);
   }
