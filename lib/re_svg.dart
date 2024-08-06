@@ -59,38 +59,6 @@ class _SvgViewState extends State<SvgView> {
     });
   }
 
-  // Widget build2(BuildContext context) {
-  //   return LayoutBuilder(builder: (context, BoxConstraints constraints) {
-  //     final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
-  //     final reSvg = _reSvg;
-  //     if (reSvg == null) {
-  //       ReSvg.from(widget.data).then((reSvg) {
-  //         _reSvg = reSvg;
-  //         final (width, height) =
-  //             _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
-  //         _lastWidth = width;
-  //         _lastHeight = height;
-  //         _hasRendered = false;
-  //         return reSvg.render(width, height);
-  //       }).then(_imageCallback);
-  //     } else {
-  //       final (width, height) =
-  //           _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
-  //       if (width != _lastWidth || height != _lastHeight) {
-  //         _lastWidth = width;
-  //         _lastHeight = height;
-  //         _hasRendered = false;
-  //         reSvg.render(width, height).then(_imageCallback);
-  //       }
-  //     }
-
-  //     return RawImage(
-  //       image: _image,
-  //       scale: devicePixelRatio,
-  //     );
-  //   });
-  // }
-
   Future<ui.Image?> _getImage(
       BoxConstraints constraints, double devicePixelRatio) async {
     final reSvg = await _reSvg;
@@ -103,17 +71,6 @@ class _SvgViewState extends State<SvgView> {
   void _clean() {
     _reSvg.then((reSvg) => reSvg.shouldClean = true);
   }
-
-  // void _imageCallback(ui.Image result) {
-  //   if (mounted) {
-  //     _hasRendered = true;
-  //     setState(() {
-  //       _image = result;
-  //     });
-  //   } else {
-  //     _clean();
-  //   }
-  // }
 
   (int, int) _getPhysicalSize(
       Size size, BoxConstraints constraints, double devicePixelRatio) {
