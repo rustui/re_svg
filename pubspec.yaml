@@ -1,6 +1,6 @@
 name: re_svg
 description: "A tiny and super-fast SVG rendering library for Flutter, with CSS support."
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/rustui/re_svg
 repository: https://github.com/rustui/re_svg
 

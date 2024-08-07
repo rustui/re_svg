@@ -50,5 +50,5 @@ android {
 }
 
 dependencies {
-    implementation 'io.github.rustui:resvg:0.2'
+    implementation 'io.github.rustui:resvg:0.3'
 }
