@@ -1,6 +1,6 @@
 name: re_svg
 description: "A tiny and super-fast SVG rendering library for Flutter, with CSS support."
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/rustui/re_svg
 repository: https://github.com/rustui/re_svg
 
@@ -44,6 +44,9 @@ flutter:
         pluginClass: ReSvgPlugin
       android:
         ffiPlugin: true
+      macos:
+        ffiPlugin: true
+        pluginClass: ReSvgPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

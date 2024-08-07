@@ -11,8 +11,6 @@ re_svg is designed for ease of use. By simply introducing the SvgView widget, SV
 ```dart
 import 'package:re_svg/re_svg.dart';
 
-// ...
-
 final data = """
 <svg height="100" width="100">
   <circle r="45" cx="50" cy="50" fill="blue" />
@@ -32,7 +30,7 @@ SvgView(
 ## Supported Platforms
 - [x] iOS
 - [x] Android
-- [ ] macOS
+- [x] macOS
 - [ ] Windows
 - [ ] Linux
 - [ ] Web

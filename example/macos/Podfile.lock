@@ -1,0 +1,29 @@
+PODS:
+  - FlutterMacOS (1.0.0)
+  - re_svg (0.0.1):
+    - FlutterMacOS
+    - resvg (~> 0.1.2)
+  - resvg (0.1.2)
+
+DEPENDENCIES:
+  - FlutterMacOS (from `Flutter/ephemeral`)
+  - re_svg (from `Flutter/ephemeral/.symlinks/plugins/re_svg/macos`)
+
+SPEC REPOS:
+  trunk:
+    - resvg
+
+EXTERNAL SOURCES:
+  FlutterMacOS:
+    :path: Flutter/ephemeral
+  re_svg:
+    :path: Flutter/ephemeral/.symlinks/plugins/re_svg/macos
+
+SPEC CHECKSUMS:
+  FlutterMacOS: 8f6f14fa908a6fb3fba0cd85dbd81ec4b251fb24
+  re_svg: f7472ad76f7b93ef83754d513c4717c35a07456a
+  resvg: 0c79160ff7225147153f9c8e2bda5377714a4a54
+
+PODFILE CHECKSUM: 236401fc2c932af29a9fcf0e97baeeb2d750d367
+
+COCOAPODS: 1.15.2
