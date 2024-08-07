@@ -2,8 +2,8 @@ PODS:
   - Flutter (1.0.0)
   - re_svg (0.0.1):
     - Flutter
-    - resvg
-  - resvg (0.1.0)
+    - resvg (~> 0.1.2)
+  - resvg (0.1.2)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -21,8 +21,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  re_svg: 8bb4c4ba175254744ac590bc19169c15ce626c7a
-  resvg: f09a381a5c113658cc1cada285effb195b09e9d3
+  re_svg: 64ecdbb41724c0c27e42a64dbd7de56c4180c578
+  resvg: 0c79160ff7225147153f9c8e2bda5377714a4a54
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 

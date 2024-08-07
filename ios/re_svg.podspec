@@ -21,7 +21,7 @@ A new Flutter FFI plugin project.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/*.h'
   s.static_framework = true
-  s.dependency 'resvg'
+  s.dependency 'resvg', '~> 0.1.2'
   s.dependency 'Flutter'
   s.platform = :ios, '12.0'
 
