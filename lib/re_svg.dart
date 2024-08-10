@@ -20,7 +20,7 @@ class _SvgViewState extends State<SvgView> {
   @override
   void initState() {
     super.initState();
-    _reSvg = ReSvg.from(widget.data);
+    _reSvg = ReSvg.spawn(widget.data);
   }
 
   @override
@@ -29,7 +29,7 @@ class _SvgViewState extends State<SvgView> {
 
     if (widget.data != oldWidget.data) {
       _clean();
-      _reSvg = ReSvg.from(widget.data);
+      _reSvg = ReSvg.spawn(widget.data);
     }
   }
 
@@ -62,14 +62,19 @@ class _SvgViewState extends State<SvgView> {
   Future<ui.Image?> _getImage(
       BoxConstraints constraints, double devicePixelRatio) async {
     final reSvg = await _reSvg;
-    final (width, height) =
-        _getPhysicalSize(reSvg.size, constraints, devicePixelRatio);
-    final image = await reSvg.render(width, height);
-    return image;
+    final size = await reSvg.getSize();
+    if (size == null) {
+      return null;
+    } else {
+      final (width, height) =
+          _getPhysicalSize(size, constraints, devicePixelRatio);
+      final image = await reSvg.render(width, height);
+      return image;
+    }
   }
 
   void _clean() {
-    _reSvg.then((reSvg) => reSvg.shouldClean = true);
+    _reSvg.then((reSvg) => reSvg.close());
   }
 
   (int, int) _getPhysicalSize(

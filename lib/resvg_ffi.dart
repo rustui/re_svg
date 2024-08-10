@@ -2,42 +2,20 @@ import 'dart:async';
 import 'dart:ffi' hide Size;
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:ffi/ffi.dart';
 
 import 'resvg_bindings_generated.dart';
 
-class ReSvg {
+class _ReSvgSync {
   final Pointer<Pointer<resvg_render_tree>> _tree;
-  late final Size size;
-  var shouldClean = false;
-  var _hasCleaned = false;
+  final Size size;
+  final resvg_transform _transform;
+  bool _closed = false;
+  _ReSvgSync._(this._tree, this.size, this._transform);
 
-  ReSvg._(this._tree, this.size);
-
-  static Future<ReSvg> from(String data) async =>
-      await Isolate.run(() => _from(data));
-
-  Future<Image?> render(int width, int height) async {
-    if (_hasCleaned) {
-      return null;
-    }
-    final (pixmap, pixels) = await Isolate.run(() => _render(width, height));
-    final completer = Completer<Image>();
-    decodeImageFromPixels(pixels, width, height, PixelFormat.rgba8888, (image) {
-      malloc.free(pixmap);
-      if (shouldClean && !_hasCleaned) {
-        _hasCleaned = true;
-        _dispose();
-      }
-      completer.complete(image);
-    });
-    return completer.future;
-  }
-
-  static ReSvg _from(String data) {
+  static _ReSvgSync from(String data) {
     final str = data.toNativeUtf8();
     final options = _bindings.resvg_options_create();
     final tree = malloc<Pointer<resvg_render_tree>>();
@@ -46,25 +24,148 @@ class ReSvg {
 
     final rawSize = _bindings.resvg_get_image_size(tree.value);
     final size = Size(rawSize.width, rawSize.height);
-    return ReSvg._(tree, size);
-  }
 
-  (Pointer<Uint8>, Uint8List) _render(int width, int height) {
     final transform = _bindings.resvg_transform_identity();
 
-    transform.a = width / size.width;
-    transform.d = height / size.height;
-    final length = width * height * 4;
-    final pixmap = malloc<Uint8>(length);
-    _bindings.resvg_render(
-        _tree.value, transform, width, height, pixmap.cast());
-
-    return (pixmap, pixmap.asTypedList(length));
+    return _ReSvgSync._(tree, size, transform);
   }
 
-  void _dispose() {
-    _bindings.resvg_tree_destroy(_tree.value);
-    malloc.free(_tree);
+  (Pointer<Uint8>, int)? render(int width, int height) {
+    if (_closed) return null;
+    _transform.a = width / size.width;
+    _transform.d = height / size.height;
+    final length = width * height * 4;
+    final pixels = malloc<Uint8>(length);
+    _bindings.resvg_render(
+        _tree.value, _transform, width, height, pixels.cast());
+
+    return (pixels, length);
+  }
+
+  void close() {
+    if (!_closed) {
+      _closed = true;
+      _bindings.resvg_tree_destroy(_tree.value);
+      malloc.free(_tree);
+    }
+  }
+}
+
+class ReSvg {
+  final SendPort _commands;
+  final ReceivePort _responses;
+  final Map<int, Completer<Object?>> _activeRequests = {};
+  int _idCounter = 0;
+  bool _closed = false;
+
+  Future<Image?> render(int width, int height) async {
+    if (_closed) return null;
+    final completer = Completer<Image?>.sync();
+    final id = _idCounter++;
+    _activeRequests[id] = completer;
+    _commands.send(_RenderRequest(id, width, height));
+    return await completer.future;
+  }
+
+  Future<Size?> getSize() async {
+    if (_closed) return null;
+    final completer = Completer<Size?>.sync();
+    final id = _idCounter++;
+    _activeRequests[id] = completer;
+    _commands.send(_SizeRequest(id));
+    return await completer.future;
+  }
+
+  static Future<ReSvg> spawn(String data) async {
+    final initPort = RawReceivePort();
+    final connection = Completer<(ReceivePort, SendPort)>.sync();
+    initPort.handler = (initialMessage) {
+      final commandPort = initialMessage as SendPort;
+      connection.complete((
+        ReceivePort.fromRawReceivePort(initPort),
+        commandPort,
+      ));
+    };
+
+    try {
+      await Isolate.spawn(_startRemoteIsolate, initPort.sendPort);
+    } on Object {
+      initPort.close();
+      rethrow;
+    }
+
+    final (ReceivePort receivePort, SendPort sendPort) =
+        await connection.future;
+
+    sendPort.send(_CreateRequest(data));
+
+    return ReSvg._(receivePort, sendPort);
+  }
+
+  ReSvg._(this._responses, this._commands) {
+    _responses.listen(_handleResponsesFromIsolate);
+  }
+
+  void _handleResponsesFromIsolate(dynamic message) {
+    if (message is _Identifiable) {
+      final completer = _activeRequests.remove(message.id);
+      if (completer != null) {
+        if (message is _RenderResponse) {
+          final pixels = message.pixels;
+          if (pixels == null) {
+            completer.complete(null);
+          } else {
+            decodeImageFromPixels(pixels.asTypedList(message.length),
+                message.width, message.height, PixelFormat.rgba8888, (image) {
+              malloc.free(pixels);
+              completer.complete(image);
+            });
+          }
+        } else if (message is _SizeResponse) {
+          completer.complete(message.size);
+        }
+      }
+    }
+
+    if (_closed && _activeRequests.isEmpty) _responses.close();
+  }
+
+  static void _startRemoteIsolate(SendPort sendPort) {
+    final receivePort = ReceivePort();
+    sendPort.send(receivePort.sendPort);
+    _ReSvgSync? rss;
+    receivePort.listen((message) {
+      if (message is _Shutdown) {
+        receivePort.close();
+        rss?.close();
+      } else if (message is _CreateRequest) {
+        rss = _ReSvgSync.from(message.data);
+      } else if (message is _RenderRequest) {
+        final result = rss?.render(message.width, message.height);
+        if (result == null) {
+          sendPort.send(_RenderResponse(message.id, null, 0, 0, 0));
+        } else {
+          final (pixels, length) = result;
+          sendPort.send(_RenderResponse(
+              message.id, pixels, length, message.width, message.height));
+          // decodeImageFromPixels(pixels.asTypedList(length), message.width,
+          //     message.height, PixelFormat.rgba8888, (image) {
+          //   malloc.free(pixels);
+          //   sendPort.send(_RenderResponse(message.id, image));
+          // });
+        }
+      } else if (message is _SizeRequest) {
+        sendPort.send(_SizeResponse(message.id, rss?.size));
+      }
+    });
+  }
+
+  void close() {
+    if (!_closed) {
+      _closed = true;
+      _commands.send(_Shutdown());
+      if (_activeRequests.isEmpty) _responses.close();
+    }
   }
 }
 
@@ -86,3 +187,44 @@ final DynamicLibrary _dylib = () {
 
 /// The bindings to the native functions in [_dylib].
 final ReSvgBindings _bindings = ReSvgBindings(_dylib);
+
+class _Identifiable {
+  final int id;
+
+  const _Identifiable(this.id);
+}
+
+class _RenderRequest extends _Identifiable {
+  final int width;
+  final int height;
+
+  const _RenderRequest(super.id, this.width, this.height);
+}
+
+class _RenderResponse extends _Identifiable {
+  final Pointer<Uint8>? pixels;
+  final int length;
+  final int width;
+  final int height;
+
+  const _RenderResponse(
+      super.id, this.pixels, this.length, this.width, this.height);
+}
+
+class _SizeRequest extends _Identifiable {
+  const _SizeRequest(super.id);
+}
+
+class _SizeResponse extends _Identifiable {
+  final Size? size;
+
+  const _SizeResponse(super.id, this.size);
+}
+
+class _CreateRequest {
+  final String data;
+
+  const _CreateRequest(this.data);
+}
+
+class _Shutdown {}
