@@ -148,11 +148,6 @@ class ReSvg {
           final (pixels, length) = result;
           sendPort.send(_RenderResponse(
               message.id, pixels, length, message.width, message.height));
-          // decodeImageFromPixels(pixels.asTypedList(length), message.width,
-          //     message.height, PixelFormat.rgba8888, (image) {
-          //   malloc.free(pixels);
-          //   sendPort.send(_RenderResponse(message.id, image));
-          // });
         }
       } else if (message is _SizeRequest) {
         sendPort.send(_SizeResponse(message.id, rss?.size));
