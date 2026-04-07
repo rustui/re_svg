@@ -44,6 +44,8 @@ flutter:
         pluginClass: ReSvgPlugin
       android:
         ffiPlugin: true
+      linux:
+        ffiPlugin: true
       macos:
         ffiPlugin: true
         pluginClass: ReSvgPlugin

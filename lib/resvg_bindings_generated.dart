@@ -114,6 +114,29 @@ class ReSvgBindings {
   late final _resvg_options_set_dpi = _resvg_options_set_dpiPtr
       .asFunction<void Function(ffi.Pointer<resvg_options>, double)>();
 
+  /// @brief Provides the content of a stylesheet that will be used when resolving CSS attributes.
+  ///
+  /// Must be UTF-8. Can be set to NULL.
+  ///
+  /// Default: NULL
+  void resvg_options_set_stylesheet(
+    ffi.Pointer<resvg_options> opt,
+    ffi.Pointer<ffi.Char> content,
+  ) {
+    return _resvg_options_set_stylesheet(
+      opt,
+      content,
+    );
+  }
+
+  late final _resvg_options_set_stylesheetPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Void Function(ffi.Pointer<resvg_options>,
+              ffi.Pointer<ffi.Char>)>>('resvg_options_set_stylesheet');
+  late final _resvg_options_set_stylesheet =
+      _resvg_options_set_stylesheetPtr.asFunction<
+          void Function(ffi.Pointer<resvg_options>, ffi.Pointer<ffi.Char>)>();
+
   /// @brief Sets the default font family.
   ///
   /// Will be used when no `font-family` attribute is set in the SVG.
@@ -566,9 +589,10 @@ class ReSvgBindings {
 
   /// @brief Returns an image size.
   ///
-  /// The size of a canvas that required to render this SVG.
+  /// The size of an image that is required to render this SVG.
   ///
-  /// The `width` and `height` attributes in SVG.
+  /// Note that elements outside the viewbox will be clipped. This is by design.
+  /// If you want to render the whole SVG content, use #resvg_get_image_bbox instead.
   ///
   /// @param tree Render tree.
   /// @return Image size.
@@ -587,9 +611,38 @@ class ReSvgBindings {
   late final _resvg_get_image_size = _resvg_get_image_sizePtr
       .asFunction<resvg_size Function(ffi.Pointer<resvg_render_tree>)>();
 
+  /// @brief Returns an object bounding box.
+  ///
+  /// This bounding box does not include objects stroke and filter regions.
+  /// This is what SVG calls "absolute object bonding box".
+  ///
+  /// If you're looking for a "complete" bounding box see #resvg_get_image_bbox
+  ///
+  /// @param tree Render tree.
+  /// @param bbox Image's object bounding box.
+  /// @return `false` if an image has no elements.
+  bool resvg_get_object_bbox(
+    ffi.Pointer<resvg_render_tree> tree,
+    ffi.Pointer<resvg_rect> bbox,
+  ) {
+    return _resvg_get_object_bbox(
+      tree,
+      bbox,
+    );
+  }
+
+  late final _resvg_get_object_bboxPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Bool Function(ffi.Pointer<resvg_render_tree>,
+              ffi.Pointer<resvg_rect>)>>('resvg_get_object_bbox');
+  late final _resvg_get_object_bbox = _resvg_get_object_bboxPtr.asFunction<
+      bool Function(ffi.Pointer<resvg_render_tree>, ffi.Pointer<resvg_rect>)>();
+
   /// @brief Returns an image bounding box.
   ///
-  /// Can be smaller or bigger than a `viewbox`.
+  /// This bounding box contains the maximum SVG dimensions.
+  /// It's size can be bigger or smaller than #resvg_get_image_size
+  /// Use it when you want to avoid clipping of elements that are outside the SVG viewbox.
   ///
   /// @param tree Render tree.
   /// @param bbox Image's bounding box.
@@ -964,8 +1017,8 @@ final class resvg_rect extends ffi.Struct {
 
 const int RESVG_MAJOR_VERSION = 0;
 
-const int RESVG_MINOR_VERSION = 42;
+const int RESVG_MINOR_VERSION = 47;
 
 const int RESVG_PATCH_VERSION = 0;
 
-const String RESVG_VERSION = '0.42.0';
+const String RESVG_VERSION = '0.47.0';
